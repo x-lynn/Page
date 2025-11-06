@@ -31,7 +31,9 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GH_PAT }}
+          # Use the built-in token which is provided to workflows.
+          # Make sure repository Actions permissions allow workflows to write pages (settings -> Actions -> General).
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./task-manager-vue/dist
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
