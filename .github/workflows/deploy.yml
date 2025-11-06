@@ -37,6 +37,7 @@ jobs:
           # Make sure repository Actions permissions allow workflows to write pages (settings -> Actions -> General).
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./task-manager-vue/dist
+          destination_dir: ./task-manager-vue
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
 
