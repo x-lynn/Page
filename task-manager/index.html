@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务管理系统</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 应用将通过 JavaScript 组件渲染 -->
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 工具函数（必须按顺序加载） -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/supabase.js"></script>
+    
+    <!-- 组件（按依赖顺序加载） -->
+    <!-- 通用组件 -->
+    <script src="js/components/common/Sidebar.js"></script>
+    
+    <!-- 首页组件 -->
+    <script src="js/components/home/HomePage.js"></script>
+    
+    <!-- 任务管理组件 -->
+    <script src="js/components/tasks/TaskTable.js"></script>
+    <script src="js/components/tasks/TaskModal.js"></script>
+    
+    <!-- 设置组件 -->
+    <script src="js/components/settings/SettingsPage.js"></script>
+    <script src="js/components/settings/TableCreator.js"></script>
+    
+    <!-- 主应用 -->
+    <script src="js/app.js"></script>
+</body>
+</html>
+
