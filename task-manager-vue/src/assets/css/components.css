@@ -1,0 +1,351 @@
+/* 卡片组件 */
+.card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 30px;
+    transition: var(--transition);
+}
+
+.card:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+.card-header {
+    margin-bottom: 20px;
+}
+
+.card-title {
+    color: var(--primary-color);
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.card-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+
+/* 按钮组件 */
+.btn {
+    background: var(--primary-gradient);
+    color: var(--white);
+    border: none;
+    padding: 12px 30px;
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+}
+
+.btn-success {
+    background: var(--success-color);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+}
+
+.btn-sm {
+    padding: 6px 15px;
+    font-size: 0.9em;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* 表单组件 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+select.form-control {
+    cursor: pointer;
+}
+
+/* 状态提示 */
+.status {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.status.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* 任务项组件 */
+.task-item {
+    background: var(--light-bg);
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+}
+
+.task-item:hover {
+    transform: translateX(5px);
+    box-shadow: var(--shadow-md);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.task-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.task-content {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.task-meta {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: white;
+}
+
+.badge-priority-low {
+    background: var(--success-color);
+}
+
+.badge-priority-medium {
+    background: var(--warning-color);
+}
+
+.badge-priority-high {
+    background: var(--danger-color);
+}
+
+.badge-status {
+    background: var(--primary-color);
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty-state-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+/* 任务列表容器 */
+#dataList {
+    min-height: 300px;
+}
+
+/* 加载状态 */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--primary-color);
+}
+
+/* 网格布局 */
+.grid {
+    display: grid;
+    gap: 30px;
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 2fr;
+}
+
+@media (max-width: 768px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 工具类 */
+.hidden {
+    display: none;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.mb-1 { margin-bottom: 10px; }
+.mb-2 { margin-bottom: 20px; }
+
+/* 模态框 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.5em;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--light-bg);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 30px;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
