@@ -15,7 +15,11 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -29,6 +33,22 @@ jobs:
       - name: Build
         working-directory: ./task-manager-vue
         run: npm run build
+        
+      - name: Clear task-manager-vue directory in gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-lynn:${{ secrets.GITHUB_TOKEN }}@github.com/x-lynn/Page.git
+          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages branch does not exist yet"
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git checkout gh-pages
+            if [ -d "task-manager-vue" ]; then
+              git rm -rf task-manager-vue
+              git commit -m "Clear task-manager-vue directory before deployment" || echo "Nothing to commit"
+              git push origin gh-pages || echo "Push failed or nothing to push"
+            fi
+            git checkout main
+          fi
         
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
