@@ -9,7 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      # Give workflows permission to write repository contents so the action
+      # can push to the `gh-pages` branch using the built-in GITHUB_TOKEN.
+      contents: write
       pages: write
       id-token: write
     steps:
