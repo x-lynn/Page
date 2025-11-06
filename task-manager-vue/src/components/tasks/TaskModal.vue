@@ -1,71 +1,79 @@
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="hide">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h2 class="modal-title">{{ currentTaskId ? '编辑任务' : '添加任务' }}</h2>
-        <button class="modal-close" @click="hide">×</button>
-      </div>
-      <div class="modal-body">
-        <form @submit.prevent="handleSave">
-          <div class="form-group">
-            <label class="form-label" for="modalTaskTitle">任务标题 *</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              id="modalTaskTitle" 
-              v-model="formData.title"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="modalTaskDescription">任务描述</label>
-            <textarea 
-              class="form-control" 
-              id="modalTaskDescription" 
-              v-model="formData.description"
-              placeholder="可选"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="modalTaskStatus">状态</label>
-            <select class="form-control" id="modalTaskStatus" v-model="formData.status">
-              <option value="pending">新建</option>
-              <option value="in_progress">进行中</option>
-              <option value="completed">已完成</option>
-              <option value="cancelled">已取消</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="modalTaskPriority">优先级</label>
-            <select class="form-control" id="modalTaskPriority" v-model="formData.priority">
-              <option value="low">低</option>
-              <option value="medium">中</option>
-              <option value="high">高</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="modalTaskDueDate">截止日期</label>
-            <input 
-              type="date" 
-              class="form-control" 
-              id="modalTaskDueDate"
-              v-model="formData.due_date"
-            >
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="hide">取消</button>
-        <button class="btn btn-success" @click="handleSave">保存</button>
-      </div>
-    </div>
-  </div>
+  <el-dialog
+    v-model="visible"
+    :title="currentTaskId ? '编辑任务' : '添加任务'"
+    width="600px"
+    @close="hide"
+  >
+    <el-form
+      ref="formRef"
+      :model="formData"
+      :rules="rules"
+      label-width="100px"
+    >
+      <el-form-item label="任务标题" prop="title">
+        <el-input
+          v-model="formData.title"
+          placeholder="请输入任务标题"
+          clearable
+        />
+      </el-form-item>
+      
+      <el-form-item label="任务描述" prop="description">
+        <el-input
+          v-model="formData.description"
+          type="textarea"
+          :rows="4"
+          placeholder="可选"
+          clearable
+        />
+      </el-form-item>
+      
+      <el-form-item label="状态" prop="status">
+        <el-select v-model="formData.status" placeholder="选择状态" style="width: 100%">
+          <el-option label="新建" value="pending" />
+          <el-option label="进行中" value="in_progress" />
+          <el-option label="已完成" value="completed" />
+          <el-option label="已取消" value="cancelled" />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="优先级" prop="priority">
+        <el-select v-model="formData.priority" placeholder="选择优先级" style="width: 100%">
+          <el-option label="低" value="low" />
+          <el-option label="中" value="medium" />
+          <el-option label="高" value="high" />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="截止日期" prop="due_date">
+        <el-date-picker
+          v-model="formData.due_date"
+          type="date"
+          placeholder="选择截止日期"
+          style="width: 100%"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+        />
+      </el-form-item>
+    </el-form>
+    
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="hide">取消</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saving">
+          保存
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { useSupabase } from '@/composables/useSupabase'
 import { useStatus } from '@/composables/useUtils'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -79,6 +87,8 @@ const { showStatus } = useStatus('tableStatus')
 
 const visible = ref(false)
 const currentTaskId = ref(null)
+const saving = ref(false)
+const formRef = ref(null)
 
 const formData = ref({
   title: '',
@@ -87,6 +97,12 @@ const formData = ref({
   priority: 'medium',
   due_date: ''
 })
+
+const rules = {
+  title: [
+    { required: true, message: '请输入任务标题', trigger: 'blur' }
+  ]
+}
 
 watch(() => props.modelValue, (newVal) => {
   visible.value = newVal
@@ -109,6 +125,7 @@ const reset = () => {
     priority: 'medium',
     due_date: ''
   }
+  formRef.value?.clearValidate()
 }
 
 const hide = () => {
@@ -120,7 +137,7 @@ const hide = () => {
 const loadTask = async (id) => {
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     return
   }
 
@@ -141,26 +158,33 @@ const loadTask = async (id) => {
       due_date: data.due_date || ''
     }
   } catch (error) {
+    ElMessage.error(`加载失败: ${error.message}`)
     showStatus(`❌ 加载失败: ${error.message}`, 'error')
   }
 }
 
 const handleSave = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate((valid) => {
+    if (valid) {
+      saveTask()
+    }
+  })
+}
+
+const saveTask = async () => {
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     return
   }
 
-  const title = formData.value.title.trim()
-  if (!title) {
-    showStatus('请填写任务标题', 'error')
-    return
-  }
+  saving.value = true
 
   try {
     const taskData = {
-      title,
+      title: formData.value.title.trim(),
       description: formData.value.description || null,
       status: formData.value.status,
       priority: formData.value.priority,
@@ -186,12 +210,23 @@ const handleSave = async () => {
 
     if (result.error) throw result.error
 
+    ElMessage.success(`${currentTaskId.value ? '更新' : '添加'}任务成功！`)
     showStatus(`✅ ${currentTaskId.value ? '更新' : '添加'}任务成功！`, 'success')
     hide()
     emit('saved')
   } catch (error) {
+    ElMessage.error(`操作失败: ${error.message}`)
     showStatus(`❌ 操作失败: ${error.message}`, 'error')
+  } finally {
+    saving.value = false
   }
 }
 </script>
 
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+</style>

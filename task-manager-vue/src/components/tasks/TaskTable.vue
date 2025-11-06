@@ -1,127 +1,153 @@
 <template>
   <div class="page-container fade-in">
-    <div class="page-header">
-      <h1 class="page-title">📝 每日任务列表</h1>
-      <p class="page-subtitle">管理和查看所有任务</p>
-    </div>
-    
-    <div class="table-container">
-      <div class="table-header">
-        <h2 class="table-title">任务列表</h2>
-        <div class="search-box">
-          <input 
-            type="text" 
-            class="search-input" 
-            v-model="searchKeyword"
-            @keypress.enter="handleSearch"
-            placeholder="搜索任务标题或描述..."
-          >
-          <button class="btn search-btn" @click="handleSearch">🔍 搜索</button>
+    <el-page-header>
+      <template #content>
+        <div class="page-header">
+          <h1 class="page-title">📝 每日任务列表</h1>
+          <p class="page-subtitle">管理和查看所有任务</p>
         </div>
-      </div>
+      </template>
+    </el-page-header>
+    
+    <el-card class="mt-4">
+      <template #header>
+        <div class="card-header-flex">
+          <h2 class="table-title">任务列表</h2>
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索任务标题或描述..."
+            clearable
+            style="width: 300px"
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+        </div>
+      </template>
       
       <div class="toolbar">
         <div class="toolbar-left">
-          <div class="filter-group">
-            <label class="filter-label">状态筛选：</label>
-            <select class="filter-select" v-model="statusFilter" @change="load">
-              <option value="all">全部</option>
-              <option value="pending">新建</option>
-              <option value="in_progress">进行中</option>
-              <option value="completed">已完成</option>
-              <option value="cancelled">已取消</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">优先级筛选：</label>
-            <select class="filter-select" v-model="priorityFilter" @change="load">
-              <option value="all">全部</option>
-              <option value="high">高</option>
-              <option value="medium">中</option>
-              <option value="low">低</option>
-            </select>
-          </div>
+          <el-select v-model="statusFilter" placeholder="状态筛选" style="width: 150px" @change="load">
+            <el-option label="全部" value="all" />
+            <el-option label="新建" value="pending" />
+            <el-option label="进行中" value="in_progress" />
+            <el-option label="已完成" value="completed" />
+            <el-option label="已取消" value="cancelled" />
+          </el-select>
+          
+          <el-select v-model="priorityFilter" placeholder="优先级筛选" style="width: 150px" @change="load">
+            <el-option label="全部" value="all" />
+            <el-option label="高" value="high" />
+            <el-option label="中" value="medium" />
+            <el-option label="低" value="low" />
+          </el-select>
         </div>
+        
         <div class="toolbar-right">
-          <button class="btn btn-success" @click="addTask">➕ 添加任务</button>
-          <button class="btn" @click="load">🔄 刷新</button>
-          <button class="btn btn-secondary" @click="handleCreateTable">📋 创建任务表</button>
+          <el-button type="success" @click="addTask" :icon="Plus">
+            添加任务
+          </el-button>
+          <el-button @click="load" :icon="Refresh">
+            刷新
+          </el-button>
+          <el-button @click="handleCreateTable" :icon="Document">
+            创建任务表
+          </el-button>
         </div>
       </div>
       
-      <div id="tableStatus"></div>
-      <div class="table-wrapper">
-        <table id="taskTable">
-          <thead>
-            <tr>
-              <th>任务标题</th>
-              <th>描述</th>
-              <th>状态</th>
-              <th>优先级</th>
-              <th>截止日期</th>
-              <th>创建时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td colspan="7" class="empty-table">
-                <div class="empty-table-icon">⏳</div>
-                <p>加载中...</p>
-              </td>
-            </tr>
-            <tr v-else-if="filteredTasks.length === 0">
-              <td colspan="7" class="empty-table">
-                <div class="empty-table-icon">📭</div>
-                <p>{{ emptyMessage }}</p>
-              </td>
-            </tr>
-            <tr v-else v-for="task in filteredTasks" :key="task.id">
-              <td><strong>{{ escapeHtml(task.title || '无标题') }}</strong></td>
-              <td>{{ escapeHtml((task.description || '').substring(0, 50)) }}{{ task.description && task.description.length > 50 ? '...' : '' }}</td>
-              <td>
-                <span class="status-badge" :class="`status-${task.status}`">
-                  {{ statusMap[task.status] || task.status }}
-                </span>
-              </td>
-              <td>
-                <span class="priority-badge" :class="`priority-${task.priority}`">
-                  {{ priorityMap[task.priority] || task.priority }}
-                </span>
-              </td>
-              <td>{{ task.due_date || '-' }}</td>
-              <td>{{ formatDate(task.created_at) }}</td>
-              <td>
-                <div class="action-buttons">
-                  <button 
-                    v-if="task.status === 'completed'"
-                    class="action-btn action-btn-incomplete" 
-                    @click="uncompleteTask(task.id)"
-                    title="取消完成"
-                  >
-                    ↩️ 取消完成
-                  </button>
-                  <button 
-                    v-else-if="task.status !== 'cancelled'"
-                    class="action-btn action-btn-complete" 
-                    @click="completeTask(task.id)"
-                    title="快速完成"
-                  >
-                    ✅ 完成
-                  </button>
-                  <button class="action-btn action-btn-edit" @click="editTask(task.id)">
-                    编辑
-                  </button>
-                  <button class="action-btn action-btn-delete" @click="deleteTask(task.id)">
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <div id="tableStatus" class="mt-4"></div>
+      
+      <el-table
+        v-loading="loading"
+        :data="filteredTasks"
+        stripe
+        style="width: 100%"
+        empty-text="暂无任务数据"
+      >
+        <el-table-column prop="title" label="任务标题" min-width="150">
+          <template #default="{ row }">
+            <strong>{{ row.title || '无标题' }}</strong>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.description || '-' }}
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="status" label="状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">
+              {{ statusMap[row.status] || row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="priority" label="优先级" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getPriorityType(row.priority)">
+              {{ priorityMap[row.priority] || row.priority }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="due_date" label="截止日期" width="120">
+          <template #default="{ row }">
+            {{ row.due_date || '-' }}
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="created_at" label="创建时间" width="180">
+          <template #default="{ row }">
+            {{ formatDate(row.created_at) }}
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              v-if="row.status === 'completed'"
+              size="small"
+              type="warning"
+              @click="uncompleteTask(row.id)"
+              :icon="RefreshLeft"
+            >
+              取消完成
+            </el-button>
+            <el-button
+              v-else-if="row.status !== 'cancelled'"
+              size="small"
+              type="success"
+              @click="completeTask(row.id)"
+              :icon="Check"
+            >
+              完成
+            </el-button>
+            <el-button
+              size="small"
+              type="primary"
+              @click="editTask(row.id)"
+              :icon="Edit"
+            >
+              编辑
+            </el-button>
+            <el-button
+              size="small"
+              type="danger"
+              @click="deleteTask(row.id)"
+              :icon="Delete"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
     
     <TaskModal 
       v-model="showModal" 
@@ -134,13 +160,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useSupabase } from '@/composables/useSupabase'
-import { useStatus, escapeHtml, formatDate, statusMap, priorityMap } from '@/composables/useUtils'
+import { useStatus, formatDate, statusMap, priorityMap } from '@/composables/useUtils'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Plus, Refresh, Document, RefreshLeft, Check, Edit, Delete } from '@element-plus/icons-vue'
 import TaskModal from './TaskModal.vue'
-// import { useTableCreator } from '@/composables/useTableCreator'
 
 const { getClient } = useSupabase()
 const { showStatus } = useStatus('tableStatus')
-// const { createTasksTable } = useTableCreator()
 
 const tasks = ref([])
 const loading = ref(false)
@@ -153,7 +179,6 @@ const editingTaskId = ref(null)
 const filteredTasks = computed(() => {
   let result = tasks.value
 
-  // 应用搜索过滤
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
     result = result.filter(task => 
@@ -165,12 +190,24 @@ const filteredTasks = computed(() => {
   return result
 })
 
-const emptyMessage = computed(() => {
-  if (tasks.value.length === 0) {
-    return '暂无任务数据'
+const getStatusType = (status) => {
+  const types = {
+    'pending': 'info',
+    'in_progress': 'warning',
+    'completed': 'success',
+    'cancelled': 'danger'
   }
-  return '没有匹配的任务'
-})
+  return types[status] || 'info'
+}
+
+const getPriorityType = (priority) => {
+  const types = {
+    'low': 'success',
+    'medium': 'warning',
+    'high': 'danger'
+  }
+  return types[priority] || 'info'
+}
 
 const handleSearch = () => {
   load()
@@ -179,28 +216,16 @@ const handleSearch = () => {
 const load = async () => {
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     tasks.value = []
     return
   }
 
   loading.value = true
-  const tbody = document.getElementById('taskTable')?.querySelector('tbody')
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty-table">
-          <div class="empty-table-icon">⏳</div>
-          <p>加载中...</p>
-        </td>
-      </tr>
-    `
-  }
 
   try {
     let query = client.from('daily_tasks').select('*')
 
-    // 应用筛选
     if (statusFilter.value !== 'all') {
       query = query.eq('status', statusFilter.value)
     }
@@ -209,7 +234,6 @@ const load = async () => {
       query = query.eq('priority', priorityFilter.value)
     }
 
-    // 排序
     query = query.order('created_at', { ascending: false })
 
     const { data, error } = await query
@@ -231,13 +255,16 @@ const load = async () => {
     tasks.value = data || []
     
     if (tasks.value.length === 0) {
+      ElMessage.info('任务加载成功（空列表）')
       showStatus('✅ 任务加载成功（空列表）', 'info')
     } else {
+      ElMessage.success(`成功加载 ${tasks.value.length} 条任务`)
       showStatus(`✅ 成功加载 ${tasks.value.length} 条任务`, 'success')
     }
   } catch (error) {
     console.error('加载任务失败:', error)
     tasks.value = []
+    ElMessage.error(`加载失败: ${error.message}`)
     showStatus(`❌ 加载失败: ${error.message}`, 'error')
   } finally {
     loading.value = false
@@ -261,7 +288,7 @@ const handleTaskSaved = () => {
 const completeTask = async (id) => {
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     return
   }
 
@@ -277,9 +304,11 @@ const completeTask = async (id) => {
 
     if (error) throw error
 
+    ElMessage.success('任务已完成！')
     showStatus('✅ 任务已完成！', 'success')
     load()
   } catch (error) {
+    ElMessage.error(`操作失败: ${error.message}`)
     showStatus(`❌ 操作失败: ${error.message}`, 'error')
   }
 }
@@ -287,7 +316,7 @@ const completeTask = async (id) => {
 const uncompleteTask = async (id) => {
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     return
   }
 
@@ -303,21 +332,33 @@ const uncompleteTask = async (id) => {
 
     if (error) throw error
 
+    ElMessage.success('已取消完成，恢复到进行中！')
     showStatus('✅ 已取消完成，恢复到进行中！', 'success')
     load()
   } catch (error) {
+    ElMessage.error(`操作失败: ${error.message}`)
     showStatus(`❌ 操作失败: ${error.message}`, 'error')
   }
 }
 
 const deleteTask = async (id) => {
-  if (!confirm('确定要删除这条任务吗？')) {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除这条任务吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+  } catch {
     return
   }
 
   const client = getClient()
   if (!client) {
-    showStatus('请先连接 Supabase', 'error')
+    ElMessage.error('请先连接 Supabase')
     return
   }
 
@@ -329,9 +370,11 @@ const deleteTask = async (id) => {
 
     if (error) throw error
 
+    ElMessage.success('删除成功！')
     showStatus('✅ 删除成功！', 'success')
     load()
   } catch (error) {
+    ElMessage.error(`删除失败: ${error.message}`)
     showStatus(`❌ 删除失败: ${error.message}`, 'error')
   }
 }
@@ -340,7 +383,6 @@ const handleCreateTable = async () => {
   const { useTableCreator } = await import('@/composables/useTableCreator')
   const { createTasksTable } = useTableCreator()
   await createTasksTable('tableStatus')
-  // 监听刷新事件
   window.addEventListener('refresh-tasks', load, { once: true })
 }
 
@@ -369,36 +411,34 @@ COMMENT ON TABLE daily_tasks IS '每日任务表';`
   if (!statusDiv) return
   
   const sqlId = 'tasks-sql-' + Date.now()
+  const escapedSql = sql.replace(/`/g, '\\`').replace(/\${/g, '\\${')
+  
   statusDiv.innerHTML = `
-    <div class="status info">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <strong>📋 请执行以下 SQL 创建每日任务表：</strong>
-        <button class="btn btn-sm" @click="copySQL('${sqlId}')">📋 复制 SQL</button>
+    <div class="el-alert el-alert--info is-light">
+      <div class="el-alert__content">
+        <div class="el-alert__title">请执行以下 SQL 创建每日任务表</div>
+        <div class="mt-2">
+          <button class="el-button el-button--small" id="copy-btn-${sqlId}">📋 复制 SQL</button>
+        </div>
+        <pre id="${sqlId}" style="background: #f5f7fa; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 0.9em; white-space: pre-wrap; margin-top: 10px;">${escapedSql}</pre>
       </div>
-      <pre id="${sqlId}" style="background: var(--light-bg); padding: 15px; border-radius: 5px; font-family: monospace; font-size: 0.9em; white-space: pre-wrap;">${escapeHtml(sql)}</pre>
     </div>
   `
   
-  // 绑定复制按钮
-  const copyBtn = statusDiv.querySelector('button')
+  window.currentSQL = sql
+  const copyBtn = document.getElementById(`copy-btn-${sqlId}`)
   if (copyBtn) {
     copyBtn.onclick = async () => {
       const { copyToClipboard } = await import('@/composables/useUtils')
       const success = await copyToClipboard(sql)
       if (success) {
-        copyBtn.textContent = '✅ 已复制'
-        copyBtn.style.background = '#28a745'
-        setTimeout(() => {
-          copyBtn.textContent = '📋 复制 SQL'
-          copyBtn.style.background = ''
-        }, 2000)
+        ElMessage.success('SQL 已复制到剪贴板')
       }
     }
   }
 }
 
 onMounted(() => {
-  // 如果已连接，自动加载任务
   setTimeout(() => {
     const client = getClient()
     if (client) {
@@ -408,3 +448,33 @@ onMounted(() => {
 })
 </script>
 
+<style scoped>
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.toolbar-left {
+  display: flex;
+  gap: 10px;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 10px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+</style>

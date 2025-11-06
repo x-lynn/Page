@@ -1,11 +1,13 @@
 <template>
   <div id="app">
-    <div class="admin-layout">
-      <Sidebar />
-      <div class="main-content">
+    <el-container class="admin-layout">
+      <el-aside width="250px">
+        <Sidebar />
+      </el-aside>
+      <el-main class="main-content">
         <router-view />
-      </div>
-    </div>
+      </el-main>
+    </el-container>
   </div>
 </template>
 
@@ -13,3 +15,17 @@
 import Sidebar from './components/common/Sidebar.vue'
 </script>
 
+<style>
+#app {
+  min-height: 100vh;
+}
+
+.admin-layout {
+  min-height: 100vh;
+}
+
+.main-content {
+  padding: 30px;
+  background: #f5f6fa;
+}
+</style>
