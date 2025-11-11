@@ -15,10 +15,13 @@
     "vue": "^3.3.4"
   },
   "devDependencies": {
-    "@dcloudio/types": "^3.4.0",
-    "@dcloudio/uni-app": "^3.0.0",
-    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "@dcloudio/types": "*",
+    "@dcloudio/uni-app": "*",
+    "@dcloudio/vite-plugin-uni": "*",
     "vite": "^5.0.0"
+  },
+  "npm": {
+    "legacy-peer-deps": true
   }
 }
 
