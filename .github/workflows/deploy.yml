@@ -27,27 +27,16 @@ jobs:
       - name: Install dependencies for task-manager-vue
         working-directory: ./task-manager-vue
         run: npm install
-      
-      - name: Install dependencies for UniTask
-        working-directory: ./UniTask
-        run: npm install --legacy-peer-deps
-        continue-on-error: true
         
       - name: Build task-manager-vue
         working-directory: ./task-manager-vue
         run: npm run build
-      
-      - name: Build UniTask
-        working-directory: ./UniTask
-        run: npm run build:h5
-        continue-on-error: true
         
       - name: Prepare deployment directory
         run: |
-          mkdir -p deploy/task-manager-vue deploy/UniTask
+          mkdir -p deploy/task-manager-vue
           cp -r ./task-manager-vue/dist/* deploy/task-manager-vue/ || true
-          cp -r ./UniTask/dist/* deploy/UniTask/ || true
-          echo '<!DOCTYPE html><html><head><title>Page Projects</title><style>body{font-family:Arial,sans-serif;margin:40px}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0366d6;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Projects</h1><ul><li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li><li><a href="/Page/UniTask/">UniTask</a></li></ul></body></html>' > deploy/index.html
+          echo '<!DOCTYPE html><html><head><title>Page Projects</title><style>body{font-family:Arial,sans-serif;margin:40px}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0366d6;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Projects</h1><ul><li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li></ul></body></html>' > deploy/index.html
         
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
