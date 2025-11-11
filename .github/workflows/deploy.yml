@@ -1,12 +1,15 @@
 name: Deploy to GitHub Pages
 
+name: Deploy to GitHub Pages
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  deploy:
+  task-manager-deploy:
+    name: Build and deploy task-manager-vue
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,30 +21,95 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
-      - name: Install dependencies for task-manager-vue
+
+      - name: Install dependencies (task-manager-vue)
         working-directory: ./task-manager-vue
-        run: npm install
-        
-      - name: Build task-manager-vue
+        run: npm ci
+
+      - name: Build (task-manager-vue)
         working-directory: ./task-manager-vue
         run: npm run build
-        
-      - name: Prepare deployment directory
-        run: |
-          mkdir -p deploy/task-manager-vue
-          cp -r ./task-manager-vue/dist/* deploy/task-manager-vue/ || true
-          echo '<!DOCTYPE html><html><head><title>Page Projects</title><style>body{font-family:Arial,sans-serif;margin:40px}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0366d6;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Projects</h1><ul><li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li></ul></body></html>' > deploy/index.html
-        
-      - name: Deploy to GitHub Pages
+
+      - name: Deploy task-manager-vue to gh-pages (into subfolder)
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy
+          publish_dir: ./task-manager-vue/dist
+          destination_dir: task-manager-vue
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
+
+  unitask-build-and-deploy:
+    name: Build and deploy UniTask (isolated)
+    needs: task-manager-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (UniTask)
+        working-directory: ./UniTask
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Build (UniTask)
+        working-directory: ./UniTask
+        run: npm run build:h5
+        continue-on-error: true
+
+      - name: Deploy UniTask to gh-pages (into subfolder)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./UniTask/dist
+          destination_dir: UniTask
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+        continue-on-error: true
+
+  ensure-index:
+    name: Ensure root index.html on gh-pages
+    needs:
+      - task-manager-deploy
+      - unitask-build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure index.html on gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-lynn:${{ secrets.GITHUB_TOKEN }}@github.com/x-lynn/Page.git
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          if git rev-parse --verify gh-pages >/dev/null 2>&1; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf . || true
+          fi
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Page Projects</title><style>body{font-family:Arial,sans-serif;margin:40px}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0366d6;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Projects</h1><ul><li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li><li><a href="/Page/UniTask/">UniTask</a></li></ul></body></html>' > index.html
+          git add index.html || true
+          git commit -m "chore: ensure Pages index" || echo "no changes to commit"
+          git push origin gh-pages || echo "push failed"
