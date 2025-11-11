@@ -9,8 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      # Give workflows permission to write repository contents so the action
-      # can push to the `gh-pages` branch using the built-in GITHUB_TOKEN.
       contents: write
       pages: write
       id-token: write
@@ -46,45 +44,15 @@ jobs:
         
       - name: Prepare deployment directory
         run: |
-          mkdir -p deploy
-          # Copy task-manager-vue build output
-          cp -r ./task-manager-vue/dist/* deploy/ || true
-          # Copy UniTask build output to UniTask subdirectory
-          mkdir -p deploy/UniTask
+          mkdir -p deploy/task-manager-vue deploy/UniTask
+          cp -r ./task-manager-vue/dist/* deploy/task-manager-vue/ || true
           cp -r ./UniTask/dist/* deploy/UniTask/ || true
-          # Create index.html in root if needed
-          if [ ! -f deploy/index.html ]; then
-            cat > deploy/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Page Projects</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 40px; }
-              ul { list-style: none; padding: 0; }
-              li { margin: 10px 0; }
-              a { color: #0366d6; text-decoration: none; }
-              a:hover { text-decoration: underline; }
-            </style>
-          </head>
-          <body>
-            <h1>Projects</h1>
-            <ul>
-              <li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li>
-              <li><a href="/Page/UniTask/">UniTask</a></li>
-            </ul>
-          </body>
-          </html>
-          EOF
-          fi
+          echo '<!DOCTYPE html><html><head><title>Page Projects</title><style>body{font-family:Arial,sans-serif;margin:40px}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0366d6;text-decoration:none;font-size:18px}a:hover{text-decoration:underline}</style></head><body><h1>Projects</h1><ul><li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li><li><a href="/Page/UniTask/">UniTask</a></li></ul></body></html>' > deploy/index.html
         
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          # Use the built-in token which is provided to workflows.
-          # Make sure repository Actions permissions allow workflows to write pages (settings -> Actions -> General).
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./deploy
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-
