@@ -26,28 +26,54 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Install dependencies
+      - name: Install dependencies for task-manager-vue
         working-directory: ./task-manager-vue
         run: npm install
+      
+      - name: Install dependencies for UniTask
+        working-directory: ./UniTask
+        run: npm install
         
-      - name: Build
+      - name: Build task-manager-vue
         working-directory: ./task-manager-vue
         run: npm run build
+      
+      - name: Build UniTask
+        working-directory: ./UniTask
+        run: npm run build:h5
         
-      - name: Clear task-manager-vue directory in gh-pages
+      - name: Prepare deployment directory
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-lynn:${{ secrets.GITHUB_TOKEN }}@github.com/x-lynn/Page.git
-          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages branch does not exist yet"
-          if git show-ref --verify --quiet refs/heads/gh-pages; then
-            git checkout gh-pages
-            if [ -d "task-manager-vue" ]; then
-              git rm -rf task-manager-vue
-              git commit -m "Clear task-manager-vue directory before deployment" || echo "Nothing to commit"
-              git push origin gh-pages || echo "Push failed or nothing to push"
-            fi
-            git checkout main
+          mkdir -p deploy
+          # Copy task-manager-vue build output
+          cp -r ./task-manager-vue/dist/* deploy/ || true
+          # Copy UniTask build output to UniTask subdirectory
+          mkdir -p deploy/UniTask
+          cp -r ./UniTask/dist/* deploy/UniTask/ || true
+          # Create index.html in root if needed
+          if [ ! -f deploy/index.html ]; then
+            cat > deploy/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Page Projects</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 40px; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 10px 0; }
+              a { color: #0366d6; text-decoration: none; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>Projects</h1>
+            <ul>
+              <li><a href="/Page/task-manager-vue/">Task Manager Vue</a></li>
+              <li><a href="/Page/UniTask/">UniTask</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
           fi
         
       - name: Deploy to GitHub Pages
@@ -56,8 +82,7 @@ jobs:
           # Use the built-in token which is provided to workflows.
           # Make sure repository Actions permissions allow workflows to write pages (settings -> Actions -> General).
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./task-manager-vue/dist
-          destination_dir: ./task-manager-vue
+          publish_dir: ./deploy
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
 
