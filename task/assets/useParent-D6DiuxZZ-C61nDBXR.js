@@ -1,1 +1,0 @@
-import{J as n,P as e,X as r,e as i}from"./index-BAIZEV96.js";const t=t=>{const s=n(t,null);if(s){const n=e(),{link:t,unlink:a,internalChildren:l}=s;t(n),r(()=>{a(n)});return{parent:s,index:i(()=>l.indexOf(n))}}return{parent:s,index:i(()=>-1)}};export{t as u};
