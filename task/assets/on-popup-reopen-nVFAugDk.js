@@ -1,0 +1,1 @@
+import{a4 as n,Y as o}from"./index-ClxX9IGc.js";import{G as s,w as a}from"./index-b7g6ikH8.js";function c(s,{args:a=[],done:c,canceled:e,error:t}){if(s){const r=s.apply(null,a);n(r)?r.then(n=>{n?c():e&&e()}).catch(t||o):r?c():e&&e()}else c()}const e=Symbol();function t(n){const o=s(e,null);o&&a(o,o=>{o&&n()})}export{e as P,c,t as o};
